@@ -7,6 +7,8 @@ const people = [
 
 export function ListaEstudiantes() {
     const navigate = useNavigate();
+
+
     return (
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="sm:flex sm:items-center">
@@ -26,8 +28,6 @@ export function ListaEstudiantes() {
               >
                 Agregar Alumno
               </button>
-
-              
             </div>
 
             <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
@@ -35,13 +35,11 @@ export function ListaEstudiantes() {
                 type="button"
                 className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                 onClick={() => {
-                    navigate("/listaasignatura");
+                    navigate("/");
                   }}
               >
-                Ver Asignaturas
+                Volver
               </button>
-
-              
             </div>
 
 
@@ -89,7 +87,7 @@ export function ListaEstudiantes() {
                               }}>
                               Editar<span className="sr-only">, {person.name}</span>
                             </a>
-                            <a href="#" className="text-indigo-600 hover:text-indigo-900 px-3"
+                            <a  className="text-indigo-600 hover:text-indigo-900 px-3"
                             onClick={() => {
                                 navigate("/notas");
                               }}>

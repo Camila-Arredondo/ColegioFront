@@ -1,7 +1,60 @@
+import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
+import * as Yup from "yup";
 
 export function CrearEstudiante() {
   const navigate = useNavigate();
+  const formik = useFormik({
+    initialValues: {
+       nombre: "",
+       apellido: "",
+       fechaNacimiento: "",
+       cursoid: ""
+    },
+    validationSchema: Yup.object().shape({
+        nombre: Yup.string()
+            .nullable()
+            .required("El campo es obligatorio"),
+        apellido: Yup.string()
+            .nullable()
+            .required("El campo es obligatorio"),
+        fechaNacimiento: Yup.date()
+            .nullable()
+            .required("El campo es obligatorio"),
+        cursoid: Yup.string()
+            .nullable( )
+            .required("El campo es obligatorio"),
+    }),
+    validateOnMount: true,
+    onSubmit: (values) => {
+
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   return (
     <div className="space-y-10 divide-y divide-gray-900/10 bg-gray-200">
       <form>
