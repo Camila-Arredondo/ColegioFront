@@ -1,12 +1,13 @@
 import { useNavigate } from "react-router-dom";
 
 const people = [
-    { name: 'Lindsay Walton', title: 'Front-end Developer', email: 'lindsay.walton@example.com', role: 'Member' },
+    { name: 'Juan Andres', title: 'Ureta Barra', email: '13-03-2010', role: '8 basicoA' },
     // More people...
   ]
 
 export function ListaEstudiantes() {
-    const navigate = useNavigate();
+    const navigate = useNavigate();  
+
 
 
     return (

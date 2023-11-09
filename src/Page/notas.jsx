@@ -1,6 +1,10 @@
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
+import { Select } from "../Components/select";
+import { useEffect, useState } from "react";
+import { TextBoxCurso } from "../Components/TextBox";
+import axios from "axios";
 
 const people = [
   { asignatura: "Matematicas", Nota1: 3, Nota2: 5.5, Nota3: 4.8, Nota4: 6.1 },
@@ -9,13 +13,22 @@ const people = [
 
 export function Notas() {
   const navigate = useNavigate();
+
+  const [asignatura, setAsignatura] = useState([]);
+
+
   const formik = useFormik({
     initialValues: {
        nota: "",
+       asignaturaid: -1
     },
     validationSchema: Yup.object().shape({
         nota: Yup.string()
             .nullable()
+            .required("El campo es obligatorio"),
+        asignaturaid: Yup.string()
+            .nullable()
+            .min(1, "El campo es obligatorio")
             .required("El campo es obligatorio"),
     }),
     validateOnMount: true,
@@ -23,6 +36,27 @@ export function Notas() {
 
     }
 });
+
+useEffect(()=>{
+  const fetchData = async () => {
+    await ObtenerAsignatura();
+  };
+  fetchData();
+},[]);
+
+
+const ObtenerAsignatura = async () =>{
+  var todasAsignaturas = await axios.get("http://localhost:5291/api/Asignatura");
+  setAsignatura(
+    todasAsignaturas.data.map((x)=>{
+      return {
+        label: x.nombre,
+        value: x.id,
+        ...x
+      }
+    })
+  )
+}
 
 
 
@@ -35,7 +69,7 @@ export function Notas() {
             NOTAS
           </h1>
           <p className="mt-2 text-sm text-gray-700">
-            Listado de todos los alumnos.
+            Listado de notas del alumno NOMBRES APELLIDOS.
           </p>
         </div>
 
@@ -60,40 +94,26 @@ export function Notas() {
             <h3 className="text-base font-semibold leading-6 text-gray-900">
               Ingresar notas
             </h3>
-            <div className="mt-2 max-w-xl text-sm text-gray-500">
-              <p>Ingrese la nota y seleccione asignatura.</p>
-            </div>
-            <form className="mt-5 sm:flex sm:items-center">
+
+            <form className="mt-5 sm:flex sm:items-center" onSubmit={(e)=>{e.preventDefault(); formik.handleSubmit(e);}}>
               <div className="w-full sm:max-w-xs">
-                <label htmlFor="email" className="sr-only">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  id="email"
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  placeholder="you@example.com"
-                />
+              <TextBoxCurso titulo="Nota" type="text" formik={formik} name="nombre" mask="999" />
               </div>
 
-              <div className="w-full sm:max-w-xs">
-                <select
-                  id="country"
-                  name="country"
-                  autoComplete="country-name"
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
-                >
-                  <option>United States</option>
-                  <option>Canada</option>
-                  <option>Mexico</option>
-                </select>
+              <div sclassName="w-full sm:max-w-xs">
+              <Select 
+                  titulo="Asignatura"
+                  placeholder="Seleccione una asignatura"
+                  options={asignatura}
+                  formik={formik} 
+                  name="asignatura"
+                  />
               </div>
               <button
                 type="submit"
                 className="mt-3 inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:ml-3 sm:mt-0 sm:w-auto"
               >
-                Save
+                Guardar
               </button>
             </form>
           </div>

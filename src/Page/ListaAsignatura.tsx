@@ -1,33 +1,64 @@
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
+import { TextBoxCurso } from "../Components/TextBox";
+import { BtnGuardar } from "../Components/btnGuardar";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
-const people = [
-  { asignatura: "Matematicas" },
-  // More people...
-];
 export function ListaAsignatura() {
   const navigate = useNavigate();
+
+  const [listaAsignatura, setListaAsignatura] = useState<any[]>([]);
+
   const formik = useFormik({
     initialValues: {
        nombre: ""
     },
     validationSchema: Yup.object().shape({
-        nivel: Yup.string()
+        nombre: Yup.string()
             .nullable()
-            .email("Correo Invalido")
             .required("El campo es obligatorio"),
 
     }),
     validateOnMount: true,
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
+      try{
+        var asignatura = await axios.post(
+          "http://localhost:5291/api/Asignatura",
+          formik.values
+        );
+        setListaAsignatura([
+          ...listaAsignatura,
+          asignatura.data
+        ])
+
+      }catch(e:any){
+        alert(e.response.data)
+      }
 
     }
 });
 
+useEffect(()=>{
+  const fetchData = async () => {
+    await ObtenerListaAsignaturas();
+  };
+  fetchData();
+},[]);
 
-
-
+const ObtenerListaAsignaturas = async () =>{
+  var todasAsignaturas = await axios.get("http://localhost:5291/api/Asignatura");
+  setListaAsignatura(
+    todasAsignaturas.data.map((x:any)=>{
+      return {
+        label: x.nombre,
+        value: x.id,
+        ...x
+      }
+    })
+  )
+}
 
 
 
@@ -65,27 +96,10 @@ export function ListaAsignatura() {
               Ingresar una nueva asignatura.
             </h3>
 
-            <form className="mt-5 sm:flex sm:items-center">
-              <div className="w-full sm:max-w-xs">
-                <label htmlFor="email" className="sr-only">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  id="email"
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  placeholder="Nombre de la asignatura"
-                />
-              </div>
-
-              
-              <button
-                type="submit"
-                className="mt-3 inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:ml-3 sm:mt-0 sm:w-auto"
-              >
-                Crear
-              </button>
+            <form className="mt-5 sm:flex sm:items-center"onSubmit={(e)=>{e.preventDefault(); formik.handleSubmit(e);}}>
+            <TextBoxCurso titulo="Nombre Asignatura" type="text" formik={formik} name="nombre" />
+      
+            <BtnGuardar titulo="GuardarAsignatura" type="submit" texto="Crear"/>
             </form>
           </div>
         </div>
@@ -104,22 +118,16 @@ export function ListaAsignatura() {
                     >
                       Asignatura
                     </th>
-
-                   
-
-                    <th scope="col" className="px-2 py-3.5 pl-3 pr-4 sm:pr-6">
-                      <span className="sr-only">Edit</span>
-                    </th>
                   </tr>
                 </thead>
 
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {people.map((person) => (
-                    <tr >
+                  {listaAsignatura.map((asignaturasAll:any, i) => (
+                    <tr key={i}>
+
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                        {person.asignatura}
+                        {asignaturasAll.nombre}
                       </td>
-                      
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                             <a className="text-indigo-600 hover:text-indigo-900 px-3">
                               Editar<span className="sr-only"></span>

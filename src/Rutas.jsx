@@ -15,6 +15,7 @@ export function Rutas() {
         <Route path="/estudiantes" element={<ListaEstudiantes />}></Route>
         <Route path="/crearEstudiante" element={<CrearEstudiante />}></Route>
         <Route path="/listaAsignatura" element={<ListaAsignatura />}></Route>
+        <Route path="/crearAsignatura" element={<CrearAsignatura />}></Route>
         <Route path="/notas" element={<Notas />}></Route>
       </Routes>
     </BrowserRouter>
