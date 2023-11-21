@@ -11,7 +11,9 @@ export function TextBoxCurso(props) {
           {titulo}
         </label>
       <div>
-        <InputMask
+
+
+{type == "mask" ? <InputMask
           mask={mask}
           maskPlaceholder=""
           className={`block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 ${
@@ -21,7 +23,24 @@ export function TextBoxCurso(props) {
           }`}
           {...formik?.getFieldProps(name)}
           placeholder={placeholder}
-        ></InputMask>
+        ></InputMask> : 
+        
+        <input
+          type={type}
+          className={`block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 ${
+            formik?.touched[name] && formik?.errors[name]
+              ? "border-red-500"
+              : ""
+          }`}
+          {...formik?.getFieldProps(name)}
+          placeholder={placeholder}
+        />
+        } 
+        
+
+
+
+
             {formik?.touched[name] && formik?.errors[name] && (
           <div className="text-red-500 text-sm mt-1">{formik?.errors[name]}</div>
         )}

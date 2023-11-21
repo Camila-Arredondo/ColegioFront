@@ -13,56 +13,53 @@ export function ListaAsignatura() {
 
   const formik = useFormik({
     initialValues: {
-       nombre: ""
+      nombre: "",
     },
     validationSchema: Yup.object().shape({
-        nombre: Yup.string()
-            .nullable()
-            .required("El campo es obligatorio"),
-
+      nombre: Yup.string().nullable().required("El campo es obligatorio"),
     }),
     validateOnMount: true,
     onSubmit: async (values) => {
-      try{
+      try {
         var asignatura = await axios.post(
           "http://localhost:5291/api/Asignatura",
           formik.values
         );
-        setListaAsignatura([
-          ...listaAsignatura,
-          asignatura.data
-        ])
-
-      }catch(e:any){
-        alert(e.response.data)
+        setListaAsignatura([...listaAsignatura, asignatura.data]);
+      } catch (e: any) {
+        alert(e.response.data);
       }
+    },
+  });
 
-    }
-});
+  useEffect(() => {
+    const fetchData = async () => {
+      await ObtenerListaAsignaturas();
+    };
+    fetchData();
+  }, []);
 
-useEffect(()=>{
-  const fetchData = async () => {
-    await ObtenerListaAsignaturas();
+  const ObtenerListaAsignaturas = async () => {
+    var todasAsignaturas = await axios.get(
+      "http://localhost:5291/api/Asignatura"
+    );
+    setListaAsignatura(
+      todasAsignaturas.data.map((x: any) => {
+        return {
+          label: x.nombre,
+          value: x.id,
+          ...x,
+        };
+      })
+    );
   };
-  fetchData();
-},[]);
 
-const ObtenerListaAsignaturas = async () =>{
-  var todasAsignaturas = await axios.get("http://localhost:5291/api/Asignatura");
-  setListaAsignatura(
-    todasAsignaturas.data.map((x:any)=>{
-      return {
-        label: x.nombre,
-        value: x.id,
-        ...x
-      }
-    })
-  )
-}
-
-
-
-
+  const eliminarAsignatura = async (id: any) => {
+    var asignaturaEliminar = await axios.delete(
+      `http://localhost:5291/api/Asignatura/${id}`
+    );
+    ObtenerListaAsignaturas();
+  };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -96,10 +93,25 @@ const ObtenerListaAsignaturas = async () =>{
               Ingresar una nueva asignatura.
             </h3>
 
-            <form className="mt-5 sm:flex sm:items-center"onSubmit={(e)=>{e.preventDefault(); formik.handleSubmit(e);}}>
-            <TextBoxCurso titulo="Nombre Asignatura" type="text" formik={formik} name="nombre" />
-      
-            <BtnGuardar titulo="GuardarAsignatura" type="submit" texto="Crear"/>
+            <form
+              className="mt-5 sm:flex sm:items-center"
+              onSubmit={(e) => {
+                e.preventDefault();
+                formik.handleSubmit(e);
+              }}
+            >
+              <TextBoxCurso
+                titulo="Nombre Asignatura"
+                type="text"
+                formik={formik}
+                name="nombre"
+              />
+
+              <BtnGuardar
+                titulo="GuardarAsignatura"
+                type="submit"
+                texto="Crear"
+              />
             </form>
           </div>
         </div>
@@ -122,31 +134,32 @@ const ObtenerListaAsignaturas = async () =>{
                 </thead>
 
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {listaAsignatura.map((asignaturasAll:any, i) => (
+                  {listaAsignatura.map((asignaturasAll: any, i) => (
                     <tr key={i}>
-
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                         {asignaturasAll.nombre}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <a className="text-indigo-600 hover:text-indigo-900 px-3">
-                              Editar<span className="sr-only"></span>
-                            </a>
-                            <a href="#" className="text-indigo-600 hover:text-indigo-900 px-3">
-                              Eliminar<span className="sr-only"></span>
-                            </a>
-                          </td>
+                        <a className="text-indigo-600 hover:text-indigo-900 px-3">
+                          Editar<span className="sr-only"></span>
+                        </a>
+                        <BtnGuardar
+                          titulo="eliminarAsignatura"
+                          type="button"
+                          texto="Eliminar"
+                          onClick={() => {
+                            eliminarAsignatura(asignaturasAll.id);
+                          }}
+                        ></BtnGuardar>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            
-
-
           </div>
         </div>
       </div>
     </div>
   );
-};
+}

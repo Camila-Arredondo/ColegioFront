@@ -13,7 +13,6 @@ const people = [
 
 export function Notas() {
   const navigate = useNavigate();
-
   const [asignatura, setAsignatura] = useState([]);
 
 
@@ -33,7 +32,6 @@ export function Notas() {
     }),
     validateOnMount: true,
     onSubmit: (values) => {
-
     }
 });
 
@@ -47,6 +45,7 @@ useEffect(()=>{
 
 const ObtenerAsignatura = async () =>{
   var todasAsignaturas = await axios.get("http://localhost:5291/api/Asignatura");
+
   setAsignatura(
     todasAsignaturas.data.map((x)=>{
       return {
@@ -57,7 +56,6 @@ const ObtenerAsignatura = async () =>{
     })
   )
 }
-
 
 
 
@@ -97,10 +95,10 @@ const ObtenerAsignatura = async () =>{
 
             <form className="mt-5 sm:flex sm:items-center" onSubmit={(e)=>{e.preventDefault(); formik.handleSubmit(e);}}>
               <div className="w-full sm:max-w-xs">
-              <TextBoxCurso titulo="Nota" type="text" formik={formik} name="nombre" mask="999" />
+              <TextBoxCurso titulo="Nota" type="mask" formik={formik} name="nota" mask="9.9" />
               </div>
 
-              <div sclassName="w-full sm:max-w-xs">
+              <div className="w-full sm:max-w-xs">
               <Select 
                   titulo="Asignatura"
                   placeholder="Seleccione una asignatura"
@@ -171,8 +169,8 @@ const ObtenerAsignatura = async () =>{
                 </thead>
 
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {people.map((person) => (
-                    <tr key={person.email}>
+                  {people.map((person,i) => (
+                    <tr key={i}>
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                         {person.asignatura}
                       </td>

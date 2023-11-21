@@ -5,18 +5,19 @@ import { Select } from "../Components/select";
 import { useEffect, useState } from "react";
 import { TextBoxCurso } from "../Components/TextBox";
 import axios from "axios";
+import { BtnGuardar } from "../Components/btnGuardar";
 
 export function CrearEstudiante() {
   const navigate = useNavigate();
-
-  const [curso, setCurso] = useState([]);
+  const [alumnosNew, setAlumnoNew] = useState<any[]>([]);
+  const [curso, setCurso] = useState<any[]>([]);
 
   const formik = useFormik({
     initialValues: {
        nombre: "",
        apellido: "",
        fechaNacimiento: "",
-       cursoid: -1,
+       cursoid: "",
     },
     validationSchema: Yup.object().shape({
         nombre: Yup.string()
@@ -30,12 +31,23 @@ export function CrearEstudiante() {
             .required("El campo es obligatorio"),
         cursoid: Yup.string()
             .nullable( )
-            .min(1, "El campo es obligatorio")
             .required("El campo es obligatorio"),
     }),
     validateOnMount: true,
-    onSubmit: (values) => {
-
+    onSubmit:async (values) => {
+      try{
+        var alumnos = await axios.post(
+          "http://localhost:5291/api/Alumno",
+          formik.values
+        );
+        setAlumnoNew([
+          ...alumnosNew,
+          alumnos.data
+        ])
+        formik.resetForm();
+      }catch(e: any){
+        alert(e.response.data);
+      }
     }
 });
 
@@ -46,10 +58,9 @@ useEffect(()=>{
   fetchData();
 },[]);
 
-
-
 const OrbtenerCursos = async () =>{
   var todosCursos = await axios.get("http://localhost:5291/api/Curso");
+
   setCurso(
     todosCursos.data.map((x: any)=>{
       return {
@@ -60,11 +71,8 @@ const OrbtenerCursos = async () =>{
     })
   )
 }
-
-
   return (
     <div className="space-y-10 divide-y divide-gray-900/10 bg-gray-200">
-      <form>
         <div className="grid grid-cols-1 gap-x-8 gap-y-8 pt-10 md:grid-cols-3">
           <div className="px-4 sm:px-0">
             <h2 className="text-base font-semibold leading-7 text-gray-900">
@@ -75,7 +83,7 @@ const OrbtenerCursos = async () =>{
             </p>
           </div>
 
-          <form className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2"  onSubmit={(e)=>{e.preventDefault(); formik.handleSubmit(e);}}>
+          <form className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2" onSubmit={(e)=>{e.preventDefault(); formik.handleSubmit(e);}}>
             <div className="px-4 py-6 sm:p-8">
               <div className="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                 <div className="sm:col-span-3">
@@ -87,17 +95,16 @@ const OrbtenerCursos = async () =>{
                 </div>
 
                 <div className="sm:col-span-2 sm:col-start-1">
-                <TextBoxCurso titulo="Fecha de Nacimiento" type="text" formik={formik} name="fechaNacimiento" />
+                <TextBoxCurso titulo="Fecha de Nacimiento" type="date" formik={formik} name="fechaNacimiento" />
                 </div>
 
                 <div className="sm:col-span-2">
-
                   <Select 
                   titulo="Curso"
                   placeholder="Seleccione un curso"
                   options={curso}
                   formik={formik} 
-                  name="curso"
+                  name="cursoid"
                   />
                 </div> 
               </div>
@@ -107,24 +114,16 @@ const OrbtenerCursos = async () =>{
                 type="button"
                 className="text-sm font-semibold leading-6 text-gray-900"
                 onClick={() => {
+                  
                   navigate("/estudiantes");
                 }}
               >
                 Cancelar
               </button>
-              <button
-                type="submit"
-                className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                onClick={() => {
-                  navigate("/estudiantes");
-                }}
-              >
-                Guardar
-              </button>
+              <BtnGuardar titulo="GuardarAsignatura" type="submit" texto="Guardar"/>
             </div>
           </form>
         </div>
-      </form>
     </div>
   );
 }

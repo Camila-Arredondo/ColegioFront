@@ -63,6 +63,15 @@ const listadoCursos = async () =>{
 }
 
 
+const eliminarCurso = async (id: any) => {
+  var cursoEliminar = await axios.delete(
+    `http://localhost:5291/api/Curso/${id}`
+  );
+  listadoCursos();
+  }
+
+
+
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center">
@@ -159,9 +168,14 @@ const listadoCursos = async () =>{
                               }}>
                               Ver curso<span className="sr-only"></span>
                             </a>
-                            <a href="#" className="text-indigo-600 hover:text-indigo-900 px-3">
-                              Eliminar<span className="sr-only"></span>
-                            </a>
+                            <BtnGuardar
+                          titulo="eliminarCurso"
+                          type="button"
+                          texto="Eliminar"
+                          onClick={() => {
+                            eliminarCurso(curso.id);
+                          }}
+                        ></BtnGuardar>
                           </td>
                     </tr>
                   ))}
