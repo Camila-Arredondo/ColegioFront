@@ -10,6 +10,8 @@ export function ListaAsignatura() {
   const navigate = useNavigate();
 
   const [listaAsignatura, setListaAsignatura] = useState<any[]>([]);
+  const [asignaturaSeleccionada, setAsignaturaSeleccionada] =
+    useState<any>(null);
 
   const formik = useFormik({
     initialValues: {
@@ -21,11 +23,35 @@ export function ListaAsignatura() {
     validateOnMount: true,
     onSubmit: async (values) => {
       try {
-        var asignatura = await axios.post(
-          "http://localhost:5291/api/Asignatura",
-          formik.values
+        const asignaturaExistente = listaAsignatura.find(
+          (asignatura) => asignatura.nombre === values.nombre
         );
-        setListaAsignatura([...listaAsignatura, asignatura.data]);
+
+        if (asignaturaExistente) {
+          alert(
+            "La asignatura ya existe. Por favor, elija un nombre diferente."
+          );
+          return;
+        }
+        if (asignaturaSeleccionada) {
+          var asignatura = await axios.patch(
+            "http://localhost:5291/api/Asignatura/" + asignaturaSeleccionada.id,
+            formik.values
+          );
+          setListaAsignatura([...listaAsignatura, asignatura.data]);
+          formik.resetForm();
+          alert("Asignatura editada correctamente");
+        } else {
+          var asignatura = await axios.post(
+            "http://localhost:5291/api/Asignatura",
+            formik.values
+          );
+          setListaAsignatura([...listaAsignatura, asignatura.data]);
+          formik.resetForm();
+          alert("Asignatura creada correctamente");
+        }
+        await ObtenerListaAsignaturas();
+        setAsignaturaSeleccionada(null);
       } catch (e: any) {
         alert(e.response.data);
       }
@@ -59,6 +85,13 @@ export function ListaAsignatura() {
       `http://localhost:5291/api/Asignatura/${id}`
     );
     ObtenerListaAsignaturas();
+  };
+
+  const editarAsignatura = async (datos: any) => {
+    formik.setValues({
+      nombre: datos.nombre,
+    });
+    setAsignaturaSeleccionada(datos);
   };
 
   return (
@@ -140,9 +173,14 @@ export function ListaAsignatura() {
                         {asignaturasAll.nombre}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <a className="text-indigo-600 hover:text-indigo-900 px-3">
-                          Editar<span className="sr-only"></span>
-                        </a>
+                        <BtnGuardar
+                          titulo="editarAsignatura"
+                          type="button"
+                          texto="Editar"
+                          onClick={() => {
+                            editarAsignatura(asignaturasAll);
+                          }}
+                        ></BtnGuardar>
                         <BtnGuardar
                           titulo="eliminarAsignatura"
                           type="button"

@@ -6,71 +6,92 @@ import { BtnGuardar } from "../Components/btnGuardar";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
-const people = [
-  { curso: 4, letra: "medio A" },
-  // More people...
-];
-
 export function CrearCurso() {
   const navigate = useNavigate();
   const [cursos, setCursos] = useState<any[]>([]);
-
+  const [cursoSeleccionado, setCursoSeleccionado] = useState<any>(null);
   const formik = useFormik({
     initialValues: {
-       nivel: "",
-       letra: "",
+      nivel: "",
+      letra: "",
     },
     validationSchema: Yup.object().shape({
-        nivel: Yup.number()
-            .nullable()
-            .min(0, "El nivel debe estar entre 0 y 12")
-            .max(12, "El nivel debe estar entre 0 y 12")
-            .required("El campo es obligatorio"),
-        letra: Yup.string()
-            .nullable()
-            .required("El campo es obligatorio"),
+      nivel: Yup.number()
+        .nullable()
+        .min(0, "El nivel debe estar entre 0 y 12")
+        .max(12, "El nivel debe estar entre 0 y 12")
+        .required("El campo es obligatorio"),
+      letra: Yup.string().nullable().required("El campo es obligatorio"),
     }),
     validateOnMount: true,
     onSubmit: async (values) => {
-      try{
-        var curso = await axios.post(
-          "http://localhost:5291/api/Curso",
-          formik.values
-        );
-        setCursos([
-          ...cursos,
-          curso.data
-        ])
-        formik.resetForm();
-      }catch(e: any){
+      try {
+
+        if (cursoSeleccionado) {
+          var curso = await axios.patch(
+            "http://localhost:5291/api/Curso/" + cursoSeleccionado.id,
+            formik.values
+          );
+          setCursos([...cursos, curso.data]);
+          formik.resetForm();
+          alert("Curso editado correctamente");
+        } else {
+          debugger;
+          const cursoExistente = cursos.find(
+            (curso) =>
+              curso.nivel == values.nivel &&
+              curso.letra.toLowerCase() == values.letra.toLowerCase()
+           
+          );
+  
+          if (cursoExistente) {
+            alert(
+              "El curso ya existe. Por favor, elija un nivel y letra diferentes."
+            );
+            return;
+          }
+          var curso = await axios.post(
+            "http://localhost:5291/api/Curso",
+            formik.values
+          );
+          setCursos([...cursos, curso.data]);
+          formik.resetForm();
+          alert("Curso creado correctamente");
+        }
+        await listadoCursos();
+        setCursoSeleccionado(null);
+      } catch (e: any) {
         alert(e.response.data);
       }
+    },
+  });
 
-    }
-});
+  useEffect(() => {
+    const fetchData = async () => {
+      await listadoCursos();
+    };
+    fetchData();
+  }, []);
 
-useEffect(()=>{
-  const fetchData = async () => {
-    await listadoCursos();
+  const listadoCursos = async () => {
+    var todosLosCursos = await axios.get("http://localhost:5291/api/Curso");
+    setCursos(todosLosCursos.data);
   };
-  fetchData();
-},[]);
 
+  const eliminarCurso = async (id: any) => {
+    var cursoEliminar = await axios.delete(
+      `http://localhost:5291/api/Curso/${id}`
+    );
+    listadoCursos();
+  };
 
-const listadoCursos = async () =>{
-  var todosLosCursos = await axios.get("http://localhost:5291/api/Curso");
-  setCursos(todosLosCursos.data);
-}
-
-
-const eliminarCurso = async (id: any) => {
-  var cursoEliminar = await axios.delete(
-    `http://localhost:5291/api/Curso/${id}`
-  );
-  listadoCursos();
-  }
-
-
+  const editarCurso = async (datos: any) => {
+    formik.setValues({
+      nivel: datos.nivel,
+      letra: datos.letra,
+    });
+    setCursoSeleccionado(datos);
+  };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -79,9 +100,7 @@ const eliminarCurso = async (id: any) => {
           <h1 className="text-base font-semibold leading-6 text-gray-900">
             Colegio NOMBRECOLEGIO
           </h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Listado cursos actuales.
-          </p>
+          <p className="mt-2 text-sm text-gray-700">Listado cursos actuales.</p>
         </div>
 
         <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
@@ -104,15 +123,27 @@ const eliminarCurso = async (id: any) => {
               Ingresar un nuevo curso
             </h3>
 
-
-
-            <form className="mt-5 sm:flex sm:items-center" onSubmit={(e)=>{e.preventDefault(); formik.handleSubmit(e);}}>
-              <TextBoxCurso mask="99" titulo="Número de curso" type="text" formik={formik} name="nivel" />
-              <TextBoxCurso  titulo="Letra" type="text" formik={formik} name="letra" />
-              <BtnGuardar titulo="GuardarCurso" type="submit" texto="Guardar"
-          
+            <form
+              className="mt-5 sm:flex sm:items-center"
+              onSubmit={(e) => {
+                e.preventDefault();
+                formik.handleSubmit(e);
+              }}
+            >
+              <TextBoxCurso
+                mask="99"
+                titulo="Número de curso"
+                type="text"
+                formik={formik}
+                name="nivel"
               />
-
+              <TextBoxCurso
+                titulo="Letra"
+                type="text"
+                formik={formik}
+                name="letra"
+              />
+              <BtnGuardar titulo="GuardarCurso" type="submit" texto="Guardar" />
             </form>
           </div>
         </div>
@@ -137,7 +168,6 @@ const eliminarCurso = async (id: any) => {
                     >
                       Letra
                     </th>
-                   
 
                     <th scope="col" className="px-2 py-3.5 pl-3 pr-4 sm:pr-6">
                       <span className="sr-only">Edit</span>
@@ -146,7 +176,7 @@ const eliminarCurso = async (id: any) => {
                 </thead>
 
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {cursos.map((curso:any , i) => (
+                  {cursos.map((curso: any, i) => (
                     <tr key={i}>
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                         {curso.nivel}
@@ -154,21 +184,27 @@ const eliminarCurso = async (id: any) => {
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                         {curso.letra}
                       </td>
-                      
+
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <a className="text-indigo-600 hover:text-indigo-900 px-3"
-                            onClick={() => {
-                                navigate("/crearestudiante");
-                              }}>
-                              Editar<span className="sr-only"></span>
-                            </a>
-                            <a  className="text-indigo-600 hover:text-indigo-900 px-3"
-                            onClick={() => {
-                                navigate("/estudiantes");
-                              }}>
-                              Ver curso<span className="sr-only"></span>
-                            </a>
-                            <BtnGuardar
+                        <BtnGuardar
+                          titulo="editarCurso"
+                          type="button"
+                          texto="Editar"
+                          onClick={() => {
+                            editarCurso(curso);
+                          }}
+                        ></BtnGuardar>
+
+                        <a
+                          className="text-indigo-600 hover:text-indigo-900 px-3"
+                          onClick={() => {
+                            navigate("/estudiantes");
+                          }}
+                        >
+                          Ver curso<span className="sr-only"></span>
+                        </a>
+
+                        <BtnGuardar
                           titulo="eliminarCurso"
                           type="button"
                           texto="Eliminar"
@@ -176,15 +212,12 @@ const eliminarCurso = async (id: any) => {
                             eliminarCurso(curso.id);
                           }}
                         ></BtnGuardar>
-                          </td>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            
-
-
           </div>
         </div>
       </div>

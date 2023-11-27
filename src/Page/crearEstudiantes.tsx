@@ -1,5 +1,5 @@
 import { useFormik } from "formik";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import { Select } from "../Components/select";
 import { useEffect, useState } from "react";
@@ -7,11 +7,13 @@ import { TextBoxCurso } from "../Components/TextBox";
 import axios from "axios";
 import { BtnGuardar } from "../Components/btnGuardar";
 
+
 export function CrearEstudiante() {
   const navigate = useNavigate();
-  const [alumnosNew, setAlumnoNew] = useState<any[]>([]);
+  const [alumnosNew, setAlumnoNew] = useState<any>(null);
   const [curso, setCurso] = useState<any[]>([]);
-
+  const location = useLocation();
+  const [alumnoId, setAlumnoId] = useState<any>(null);
   const formik = useFormik({
     initialValues: {
        nombre: "",
@@ -36,31 +38,85 @@ export function CrearEstudiante() {
     validateOnMount: true,
     onSubmit:async (values) => {
       try{
-        var alumnos = await axios.post(
-          "http://localhost:5291/api/Alumno",
-          formik.values
-        );
-        setAlumnoNew([
-          ...alumnosNew,
-          alumnos.data
-        ])
+        var todosLosAlumnos = await axios.get("http://localhost:5291/api/Alumno");
+
+
+        if(alumnoId){
+          const alumnoExistente = todosLosAlumnos.data.find(
+            (alumno:any) =>
+               alumno.nombre.toLowerCase() === values.nombre.toLowerCase() && alumno.apellido.toLowerCase() === values.apellido.toLowerCase() && alumno.id != alumnoId
+          );
+          if(alumnoExistente){
+            alert("El alumno ya existe. Por favor, elija un nombre diferente.");
+            return;
+          }
+          
+          var alumnos = await axios.patch(
+            "http://localhost:5291/api/Alumno/"+alumnoId,
+            formik.values
+          );
+          setAlumnoNew([
+            ...alumnosNew,
+            alumnos.data
+          ])
+        }else{
+          const alumnoExistente = todosLosAlumnos.data.find(
+            (alumno:any) =>
+               alumno.nombre.toLowerCase() === values.nombre.toLowerCase() && alumno.apellido.toLowerCase() === values.apellido.toLowerCase()
+          );
+          if(alumnoExistente){
+            alert("El alumno ya existe. Por favor, elija un nombre diferente.");
+            return;
+          }
+          
+          var alumnos = await axios.post(
+            "http://localhost:5291/api/Alumno",
+            formik.values
+          );
+          setAlumnoNew([
+            ...alumnosNew,
+            alumnos.data
+          ])
+        }
+      
         formik.resetForm();
+
       }catch(e: any){
         alert(e.response.data);
       }
     }
 });
-
 useEffect(()=>{
   const fetchData = async () => {
     await OrbtenerCursos();
   };
   fetchData();
-},[]);
+  const getAlumno = async () =>{
+    const searchParams = new URLSearchParams(location.search);
+    const id = searchParams.get('id');
+    if(id){
+      var alumnoeditar = await axios.get(`http://localhost:5291/api/Alumno/${id}`);
+      var fecha = new Date(alumnoeditar.data.fechaNacimiento);
+      const año = fecha.getFullYear();
+      const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+      const dia = String(fecha.getDate()).padStart(2, '0');
+      const fechaFormateada = `${año}-${mes}-${dia}`;
 
+      formik.setValues({
+        nombre: alumnoeditar.data.nombre,
+        apellido: alumnoeditar.data.apellido,
+        fechaNacimiento: fechaFormateada,
+        cursoid: alumnoeditar.data.cursoid,
+      });
+      setAlumnoId(id);
+    }
+  };
+  getAlumno();
+ 
+},[]);
 const OrbtenerCursos = async () =>{
   var todosCursos = await axios.get("http://localhost:5291/api/Curso");
-
+  todosCursos.data.unshift({id: "", nivel: "", letra: ""});
   setCurso(
     todosCursos.data.map((x: any)=>{
       return {
@@ -114,13 +170,13 @@ const OrbtenerCursos = async () =>{
                 type="button"
                 className="text-sm font-semibold leading-6 text-gray-900"
                 onClick={() => {
-                  
                   navigate("/estudiantes");
                 }}
               >
                 Cancelar
               </button>
-              <BtnGuardar titulo="GuardarAsignatura" type="submit" texto="Guardar"/>
+              <BtnGuardar titulo="GuardarAsignatura" type="submit" texto="Guardar"
+              />
             </div>
           </form>
         </div>

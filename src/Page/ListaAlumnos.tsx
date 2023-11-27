@@ -5,10 +5,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BtnGuardar } from "../Components/btnGuardar";
 
-const people = [
-    { name: 'Juan Andres', title: 'Ureta Barra', email: '13-03-2010', role: '8 basicoA' },
-    // More people...
-  ]
 
 export function ListaEstudiantes() {
     const navigate = useNavigate();  
@@ -20,23 +16,16 @@ export function ListaEstudiantes() {
       };
       fetchData();
     },[]);
-    
-
     const listadoAlumnos = async () =>{
       var todosLosAlumnos = await axios.get("http://localhost:5291/api/Alumno");
       setAlumnos(todosLosAlumnos.data);
     }
-
     const eliminarAlumno = async (id: any) => {
       var alumnoEliminar = await axios.delete(
         `http://localhost:5291/api/Alumno/${id}`
       );
       listadoAlumnos();
     }
-    
-
-
-
 
     return (
         <div className="px-4 sm:px-6 lg:px-8">
@@ -110,18 +99,21 @@ export function ListaEstudiantes() {
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{alumno.fechaNacimiento}</td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{alumno.curso.nivel}-{alumno.curso.letra}</td>
                           <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+
                             <a className="text-indigo-600 hover:text-indigo-900 px-3"
                             onClick={() => {
-                                navigate("/crearestudiante");
+                                navigate("/crearestudiante?id="+ alumno.id);
                               }}>
                               Editar<span className="sr-only">, </span>
                             </a>
+
                             <a  className="text-indigo-600 hover:text-indigo-900 px-3"
                             onClick={() => {
                                 navigate("/notas");
                               }}>
                               Ver notas<span className="sr-only">, </span>
                             </a>
+                          
                             <BtnGuardar
                           titulo="eliminarAlumno"
                           type="button"
