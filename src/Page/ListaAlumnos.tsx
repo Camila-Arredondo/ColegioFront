@@ -109,7 +109,7 @@ export function ListaEstudiantes() {
 
                             <a  className="text-indigo-600 hover:text-indigo-900 px-3"
                             onClick={() => {
-                                navigate("/notas");
+                                navigate("/notas?id="+alumno.id);
                               }}>
                               Ver notas<span className="sr-only">, </span>
                             </a>

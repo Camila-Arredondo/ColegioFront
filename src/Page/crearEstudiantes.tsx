@@ -10,10 +10,10 @@ import { BtnGuardar } from "../Components/btnGuardar";
 
 export function CrearEstudiante() {
   const navigate = useNavigate();
-  const [alumnosNew, setAlumnoNew] = useState<any>(null);
   const [curso, setCurso] = useState<any[]>([]);
   const location = useLocation();
   const [alumnoId, setAlumnoId] = useState<any>(null);
+
   const formik = useFormik({
     initialValues: {
        nombre: "",
@@ -55,10 +55,7 @@ export function CrearEstudiante() {
             "http://localhost:5291/api/Alumno/"+alumnoId,
             formik.values
           );
-          setAlumnoNew([
-            ...alumnosNew,
-            alumnos.data
-          ])
+
         }else{
           const alumnoExistente = todosLosAlumnos.data.find(
             (alumno:any) =>
@@ -73,13 +70,11 @@ export function CrearEstudiante() {
             "http://localhost:5291/api/Alumno",
             formik.values
           );
-          setAlumnoNew([
-            ...alumnosNew,
-            alumnos.data
-          ])
+
         }
       
         formik.resetForm();
+        navigate("/estudiantes");
 
       }catch(e: any){
         alert(e.response.data);
@@ -176,6 +171,7 @@ const OrbtenerCursos = async () =>{
                 Cancelar
               </button>
               <BtnGuardar titulo="GuardarAsignatura" type="submit" texto="Guardar"
+
               />
             </div>
           </form>

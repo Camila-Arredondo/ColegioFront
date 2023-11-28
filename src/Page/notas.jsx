@@ -1,5 +1,5 @@
 import { useFormik } from "formik";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import { Select } from "../Components/select";
 import { useEffect, useState } from "react";
@@ -13,51 +13,108 @@ const people = [
 
 export function Notas() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [asignatura, setAsignatura] = useState([]);
-
+  const [notasAlumno, setNotasAlumno] = useState([]);
 
   const formik = useFormik({
     initialValues: {
-       nota: "",
-       asignaturaid: -1
+      nota1: "",
+      nota2: "",
+      nota3: "",
+      nota4: "",
+      asignaturaid: -1,
     },
     validationSchema: Yup.object().shape({
-        nota: Yup.string()
-            .nullable()
-            .required("El campo es obligatorio"),
-        asignaturaid: Yup.string()
-            .nullable()
-            .min(1, "El campo es obligatorio")
-            .required("El campo es obligatorio"),
+      nota1: Yup.string().nullable().required("El campo es obligatorio"),
+      nota2: Yup.string().nullable().required("El campo es obligatorio"),
+      nota3: Yup.string().nullable().required("El campo es obligatorio"),
+      nota4: Yup.string().nullable().required("El campo es obligatorio"),
+      asignaturaid: Yup.string()
+        .nullable()
+        .min(1, "El campo es obligatorio")
+        .required("El campo es obligatorio"),
     }),
     validateOnMount: true,
-    onSubmit: (values) => {
-    }
-});
+    onSubmit: async (values) => {
+      try {
+        const searchParams = new URLSearchParams(location.search);
+        const idAlumno = searchParams.get("id");
+  
+        let notas = [];
+        if (formik.values.nota1 !== "") {
+          notas.push({
+            nota: parseFloat(formik.values.nota1),
+            alumnoid: idAlumno,
+            asignaturaid: formik.values.asignaturaid,
+          });
+        }
+        if (formik.values.nota2 !== "") {
+          notas.push({
+            nota: parseFloat(formik.values.nota2),
+            alumnoid: idAlumno,
+            asignaturaid: formik.values.asignaturaid,
+          });
+        }
+        if (formik.values.nota3 !== "") {
+          notas.push({
+            nota: parseFloat(formik.values.nota3),
+            alumnoid: idAlumno,
+            asignaturaid: formik.values.asignaturaid,
+          });
+        }
+        if (formik.values.nota4 !== "") {
+          notas.push({
+            nota: parseFloat(formik.values.nota4),
+            alumnoid: idAlumno,
+            asignaturaid: formik.values.asignaturaid,
+          });
+        }
 
-useEffect(()=>{
-  const fetchData = async () => {
-    await ObtenerAsignatura();
-  };
-  fetchData();
-},[]);
+        var crearNotas = await axios.post(
+          "http://localhost:5291/api/Notas",
+          notas
+        );
+        setNotasAlumno(crearNotas.data);
+        alert("Nota creada correctamente");
 
 
-const ObtenerAsignatura = async () =>{
-  var todasAsignaturas = await axios.get("http://localhost:5291/api/Asignatura");
-
-  setAsignatura(
-    todasAsignaturas.data.map((x)=>{
-      return {
-        label: x.nombre,
-        value: x.id,
-        ...x
+        
+        await ObtenerNotas();
+        formik.resetForm();
+      } catch (e) {
+        alert(e.response.data);
       }
-    })
-  )
-}
+    },
+  });
 
+  useEffect(() => {
+    const fetchData = async () => {
+      await ObtenerAsignatura();
+    };
+    fetchData();
+  }, []);
 
+  const ObtenerNotas = async (id) => {
+    var todasNotas = await axios.get(`http://localhost:5291/api/Notas/alumno/${id}`);
+    setNotasAlumno(todasNotas.data);
+  };
+
+  
+  const ObtenerAsignatura = async () => {
+    var todasAsignaturas = await axios.get(
+      "http://localhost:5291/api/Asignatura"
+    );
+    setAsignatura(
+      todasAsignaturas.data.map((x) => {
+        return {
+          label: x.nombre,
+          value: x.id,
+          ...x,
+        };
+      })
+    );
+  };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -82,8 +139,6 @@ const ObtenerAsignatura = async () =>{
             Volver
           </button>
         </div>
-
-        
       </div>
 
       <div>
@@ -93,19 +148,61 @@ const ObtenerAsignatura = async () =>{
               Ingresar notas
             </h3>
 
-            <form className="mt-5 sm:flex sm:items-center" onSubmit={(e)=>{e.preventDefault(); formik.handleSubmit(e);}}>
-              <div className="w-full sm:max-w-xs">
-              <TextBoxCurso titulo="Nota" type="mask" formik={formik} name="nota" mask="9.9" />
+            <form
+              className="mt-5 sm:flex sm:items-center"
+              onSubmit={(e) => {
+                e.preventDefault();
+                formik.handleSubmit(e);
+              }}
+            >
+              <div className=" sm:max-w-xs">
+                <TextBoxCurso
+                  titulo="Nota 1"
+                  type="mask"
+                  formik={formik}
+                  name="nota1"
+                  mask="9.9"
+                />
+              </div>
+
+              <div className=" sm:max-w-xs">
+                <TextBoxCurso
+                  titulo="Nota 2"
+                  type="mask"
+                  formik={formik}
+                  name="nota2"
+                  mask="9.9"
+                />
+              </div>
+
+              <div className="w sm:max-w-xs">
+                <TextBoxCurso
+                  titulo="Nota 3"
+                  type="mask"
+                  formik={formik}
+                  name="nota3"
+                  mask="9.9"
+                />
+              </div>
+
+              <div className=" sm:max-w-xs">
+                <TextBoxCurso
+                  titulo="Nota 4"
+                  type="mask"
+                  formik={formik}
+                  name="nota4"
+                  mask="9.9"
+                />
               </div>
 
               <div className="w-full sm:max-w-xs">
-              <Select 
+                <Select
                   titulo="Asignatura"
                   placeholder="Seleccione una asignatura"
                   options={asignatura}
-                  formik={formik} 
-                  name="asignatura"
-                  />
+                  formik={formik}
+                  name="asignaturaid"
+                />
               </div>
               <button
                 type="submit"
@@ -169,28 +266,26 @@ const ObtenerAsignatura = async () =>{
                 </thead>
 
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {people.map((person,i) => (
+                  {notasAlumno.map((notaAlumnos, i) => (
                     <tr key={i}>
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                        {person.asignatura}
+                        {notaAlumnos.asignatura}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {person.Nota1}
+                        {notaAlumnos.Nota1}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {person.Nota2}
+                        {notaAlumnos.Nota2}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {person.Nota3}
+                        {notaAlumnos.Nota3}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {person.Nota4}
+                        {notaAlumnos.Nota4}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <a
-                          className="text-indigo-600 hover:text-indigo-900 px-3"
-                        >
-                          Editar<span className="sr-only">, {person.name}</span>
+                        <a className="text-indigo-600 hover:text-indigo-900 px-3">
+                          Editar<span className="sr-only">, </span>
                         </a>
                       </td>
                     </tr>
@@ -198,21 +293,23 @@ const ObtenerAsignatura = async () =>{
                 </tbody>
               </table>
             </div>
-            
-            <div className="justify-end">
-      <label htmlFor="email" className="mt-7 block text-sm font-medium leading-6 text-gray-900">
-        Promedio final
-      </label>
-      <div className="mt-2 ">
-        <input
-          type="email"
-          name="email"
-          id="email"
-          className="block w-30 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-        />
-      </div>
-    </div>
 
+            <div className="justify-end">
+              <label
+                htmlFor="email"
+                className="mt-7 block text-sm font-medium leading-6 text-gray-900"
+              >
+                Promedio final
+              </label>
+              <div className="mt-2 ">
+                <input
+                  type="email"
+                  name="email"
+                  id="email"
+                  className="block w-30 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
