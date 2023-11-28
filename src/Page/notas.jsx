@@ -23,13 +23,13 @@ export function Notas() {
       nota2: "",
       nota3: "",
       nota4: "",
-      asignaturaid: -1,
+      asignaturaid: "",
     },
     validationSchema: Yup.object().shape({
-      nota1: Yup.string().nullable().required("El campo es obligatorio"),
-      nota2: Yup.string().nullable().required("El campo es obligatorio"),
-      nota3: Yup.string().nullable().required("El campo es obligatorio"),
-      nota4: Yup.string().nullable().required("El campo es obligatorio"),
+      nota1: Yup.string().nullable(),
+      nota2: Yup.string().nullable(),
+      nota3: Yup.string().nullable(),
+      nota4: Yup.string().nullable(),
       asignaturaid: Yup.string()
         .nullable()
         .min(1, "El campo es obligatorio")
@@ -47,6 +47,7 @@ export function Notas() {
             nota: parseFloat(formik.values.nota1),
             alumnoid: idAlumno,
             asignaturaid: formik.values.asignaturaid,
+            posicion: 1,
           });
         }
         if (formik.values.nota2 !== "") {
@@ -54,6 +55,7 @@ export function Notas() {
             nota: parseFloat(formik.values.nota2),
             alumnoid: idAlumno,
             asignaturaid: formik.values.asignaturaid,
+            posicion: 2,
           });
         }
         if (formik.values.nota3 !== "") {
@@ -61,6 +63,7 @@ export function Notas() {
             nota: parseFloat(formik.values.nota3),
             alumnoid: idAlumno,
             asignaturaid: formik.values.asignaturaid,
+            posicion: 3,
           });
         }
         if (formik.values.nota4 !== "") {
@@ -68,11 +71,12 @@ export function Notas() {
             nota: parseFloat(formik.values.nota4),
             alumnoid: idAlumno,
             asignaturaid: formik.values.asignaturaid,
+            posicion: 4,
           });
         }
 
         var crearNotas = await axios.post(
-          "http://localhost:5291/api/Notas",
+          "http://localhost:5291/api/Notas/"+formik.values.asignaturaid + "/"+idAlumno,
           notas
         );
         setNotasAlumno(crearNotas.data);
@@ -93,10 +97,15 @@ export function Notas() {
       await ObtenerAsignatura();
     };
     fetchData();
+    ObtenerNotas();
   }, []);
 
-  const ObtenerNotas = async (id) => {
-    var todasNotas = await axios.get(`http://localhost:5291/api/Notas/alumno/${id}`);
+  const ObtenerNotas = async () => {
+    const searchParams = new URLSearchParams(location.search);
+    const idAlumno = searchParams.get("id");
+
+    var todasNotas = await axios.get(`http://localhost:5291/api/Notas/alumno/${idAlumno}`);
+    debugger;
     setNotasAlumno(todasNotas.data);
   };
 
@@ -272,19 +281,28 @@ export function Notas() {
                         {notaAlumnos.asignatura}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {notaAlumnos.Nota1}
+                        {notaAlumnos?.notas?.find(x=>x.posicion == 1)?.nota}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {notaAlumnos.Nota2}
+                      {notaAlumnos?.notas?.find(x=>x.posicion == 2)?.nota}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {notaAlumnos.Nota3}
+                      {notaAlumnos?.notas?.find(x=>x.posicion == 3)?.nota}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {notaAlumnos.Nota4}
+                      {notaAlumnos?.notas?.find(x=>x.posicion == 4)?.nota}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <a className="text-indigo-600 hover:text-indigo-900 px-3">
+                        <a className="text-indigo-600 hover:text-indigo-900 px-3" onClick={()=>{
+                          formik.setValues({
+                            nota1: notaAlumnos.notas.find(x=>x.posicion == 1)?.nota.toString() || "",
+                            nota2: notaAlumnos.notas.find(x=>x.posicion ==2)?.nota.toString() || "",
+                            nota3:  notaAlumnos.notas.find(x=>x.posicion == 3)?.nota.toString() || "",
+                            nota4: notaAlumnos.notas.find(x=>x.posicion == 4)?.nota.toString() || "",
+                            asignaturaid: notaAlumnos.asignaturaid,
+                          
+                          })
+                        }}>
                           Editar<span className="sr-only">, </span>
                         </a>
                       </td>
