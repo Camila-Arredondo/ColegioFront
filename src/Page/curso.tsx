@@ -198,7 +198,7 @@ export function CrearCurso() {
                         <a
                           className="text-indigo-600 hover:text-indigo-900 px-3"
                           onClick={() => {
-                            navigate("/estudiantes");
+                            navigate("/estudiantes?=id"+ curso.id);
                           }}
                         >
                           Ver curso<span className="sr-only"></span>

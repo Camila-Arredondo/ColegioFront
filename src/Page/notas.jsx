@@ -6,16 +6,13 @@ import { useEffect, useState } from "react";
 import { TextBoxCurso } from "../Components/TextBox";
 import axios from "axios";
 
-const people = [
-  { asignatura: "Matematicas", Nota1: 3, Nota2: 5.5, Nota3: 4.8, Nota4: 6.1 },
-  // More people...
-];
-
 export function Notas() {
   const navigate = useNavigate();
   const location = useLocation();
   const [asignatura, setAsignatura] = useState([]);
   const [notasAlumno, setNotasAlumno] = useState([]);
+  const [promediosPorAsignatura, setPromediosPorAsignatura] = useState({});
+  const [promedioFinal, setPromedioFinal] = useState(0);
 
   const formik = useFormik({
     initialValues: {
@@ -40,7 +37,7 @@ export function Notas() {
       try {
         const searchParams = new URLSearchParams(location.search);
         const idAlumno = searchParams.get("id");
-  
+
         let notas = [];
         if (formik.values.nota1 !== "") {
           notas.push({
@@ -76,14 +73,15 @@ export function Notas() {
         }
 
         var crearNotas = await axios.post(
-          "http://localhost:5291/api/Notas/"+formik.values.asignaturaid + "/"+idAlumno,
+          "http://localhost:5291/api/Notas/" +
+            formik.values.asignaturaid +
+            "/" +
+            idAlumno,
           notas
         );
         setNotasAlumno(crearNotas.data);
         alert("Nota creada correctamente");
 
-
-        
         await ObtenerNotas();
         formik.resetForm();
       } catch (e) {
@@ -98,18 +96,44 @@ export function Notas() {
     };
     fetchData();
     ObtenerNotas();
-  }, []);
+
+    const calcularPromediosPorAsignatura = () => {
+      const promedios = {};
+      notasAlumno.forEach((notaAlumnos) => {
+        const asignaturaId = notaAlumnos.asignaturaid;
+        const notas = notaAlumnos?.notas?.map((x) => x.nota) || [];
+        const promedio =
+          notas.length > 0
+            ? notas.reduce((total, nota) => total + nota, 0) / notas.length
+            : 0;
+        promedios[asignaturaId] = promedio;
+      });
+      setPromediosPorAsignatura(promedios);
+    };
+
+    const calcularPromedioFinal = () => {
+      const notas = Object.values(promediosPorAsignatura);
+      const promedioFinal =
+        notas.length > 0
+          ? notas.reduce((total, nota) => total + nota, 0) / notas.length
+          : 0;
+      setPromedioFinal(promedioFinal);
+    };
+
+    calcularPromediosPorAsignatura();
+    calcularPromedioFinal();
+  }, [notasAlumno]);
 
   const ObtenerNotas = async () => {
     const searchParams = new URLSearchParams(location.search);
     const idAlumno = searchParams.get("id");
 
-    var todasNotas = await axios.get(`http://localhost:5291/api/Notas/alumno/${idAlumno}`);
-    debugger;
+    var todasNotas = await axios.get(
+      `http://localhost:5291/api/Notas/alumno/${idAlumno}`
+    );
     setNotasAlumno(todasNotas.data);
   };
 
-  
   const ObtenerAsignatura = async () => {
     var todasAsignaturas = await axios.get(
       "http://localhost:5291/api/Asignatura"
@@ -281,29 +305,48 @@ export function Notas() {
                         {notaAlumnos.asignatura}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {notaAlumnos?.notas?.find(x=>x.posicion == 1)?.nota}
+                        {notaAlumnos?.notas?.find((x) => x.posicion == 1)?.nota}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      {notaAlumnos?.notas?.find(x=>x.posicion == 2)?.nota}
+                        {notaAlumnos?.notas?.find((x) => x.posicion == 2)?.nota}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      {notaAlumnos?.notas?.find(x=>x.posicion == 3)?.nota}
+                        {notaAlumnos?.notas?.find((x) => x.posicion == 3)?.nota}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      {notaAlumnos?.notas?.find(x=>x.posicion == 4)?.nota}
+                        {notaAlumnos?.notas?.find((x) => x.posicion == 4)?.nota}
+                      </td>
+                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                        {promediosPorAsignatura[notaAlumnos.asignaturaid] || 0}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <a className="text-indigo-600 hover:text-indigo-900 px-3" onClick={()=>{
-                          formik.setValues({
-                            nota1: notaAlumnos.notas.find(x=>x.posicion == 1)?.nota.toString() || "",
-                            nota2: notaAlumnos.notas.find(x=>x.posicion ==2)?.nota.toString() || "",
-                            nota3:  notaAlumnos.notas.find(x=>x.posicion == 3)?.nota.toString() || "",
-                            nota4: notaAlumnos.notas.find(x=>x.posicion == 4)?.nota.toString() || "",
-                            asignaturaid: notaAlumnos.asignaturaid,
-                          
-                          })
-                        }}>
-                          Editar<span className="sr-only">, </span>
+                        <a
+                          className="text-indigo-600 hover:text-indigo-900 px-3"
+                          onClick={() => {
+                            formik.setValues({
+                              nota1:
+                                notaAlumnos.notas
+                                  .find((x) => x.posicion == 1)
+                                  ?.nota.toString() || "",
+                              nota2:
+                                notaAlumnos.notas
+                                  .find((x) => x.posicion == 2)
+                                  ?.nota.toString() || "",
+                              nota3:
+                                notaAlumnos.notas
+                                  .find((x) => x.posicion == 3)
+                                  ?.nota.toString() || "",
+                              nota4:
+                                notaAlumnos.notas
+                                  .find((x) => x.posicion == 4)
+                                  ?.nota.toString() || "",
+                              asignaturaid: notaAlumnos.asignaturaid,
+                            });
+                          }}
+                        >
+                          <a className="text-indigo-600 hover:text-indigo-900 px-3">
+                            Editar<span className="sr-only">, </span>
+                          </a>
                         </a>
                       </td>
                     </tr>
@@ -314,16 +357,18 @@ export function Notas() {
 
             <div className="justify-end">
               <label
-                htmlFor="email"
+                htmlFor="promedioFinal"
                 className="mt-7 block text-sm font-medium leading-6 text-gray-900"
               >
                 Promedio final
               </label>
-              <div className="mt-2 ">
+              <div className="mt-2">
                 <input
-                  type="email"
-                  name="email"
-                  id="email"
+                  type="text"
+                  name="promedioFinal"
+                  id="promedioFinal"
+                  value={promedioFinal.toFixed(2)}
+                  readOnly
                   className="block w-30 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
               </div>
