@@ -2,11 +2,12 @@ import axios from "axios";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { BtnGuardar } from "../Components/btnGuardar";
 
 
 export function ListaEstudiantes() {
+    const location = useLocation();
     const navigate = useNavigate();  
     const [alumnos, setAlumnos] = useState<any[]>([]);
 
@@ -17,7 +18,10 @@ export function ListaEstudiantes() {
       fetchData();
     },[]);
     const listadoAlumnos = async () =>{
-      var todosLosAlumnos = await axios.get("http://localhost:5291/api/Alumno");
+      const searchParams = new URLSearchParams(location.search);
+    const idCurso = searchParams.get("id");
+
+      var todosLosAlumnos = await axios.get(`http://localhost:5291/api/Alumno/curso/${idCurso}`);
       setAlumnos(todosLosAlumnos.data);
     }
     const eliminarAlumno = async (id: any) => {
